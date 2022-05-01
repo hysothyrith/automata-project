@@ -6,3 +6,4 @@
 2. Example automata definitions can be imported from `src/lib/example-automata.ts`.
 3. This project uses Typescript, but not in “strict” mode, so any normal JavaScript should work.
 4. You can install any npm package you need.
+5. You can push directly to the repo, no pull requests needed.
