@@ -7,5 +7,4 @@ export interface AutomatonDefinition {
   startState: State;
   finalStates: State[];
 }
-
 export type Automaton = Readonly<AutomatonDefinition>;

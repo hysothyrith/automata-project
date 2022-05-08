@@ -9,6 +9,7 @@ export const dfa1: AutomatonDefinition = {
     q0: { on: { a: "q0", b: "q1" } },
     q1: { on: { a: "q2", b: "q2" } },
     q2: { on: { a: "q2", b: "q2" } },
+    q3: { on: { a: "q2", b: "q2" } },
   },
   startState: "q0",
   finalStates: ["q1"],
