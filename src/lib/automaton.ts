@@ -1,5 +1,5 @@
 import { Automaton, AutomatonDefinition } from "./automaton.interface";
-import { nfa1,dfa1 } from "./example-automata";
+import { nfa1,dfa1, dfa2 } from "./example-automata";
 import { EPSILON, NFA1ForConvert } from './Constant';
 import { CheckFinteAutomaton } from "./CheckTypeAutomaton";
 import { ConvertNFAToDFA } from './ConvertNFAToDFA';
@@ -24,7 +24,7 @@ export function rejects(
 } 
 
 export const checkFinteAutomaton = (automaton: Automaton)=>{
-  return CheckFinteAutomaton(automaton)
+  return CheckFinteAutomaton(dfa2)
 }
 
 export function minimize(automaton: Automaton): Automaton {

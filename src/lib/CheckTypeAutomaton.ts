@@ -1,11 +1,12 @@
 
-import { dfa1, nfa1 } from './example-automata';
+import { dfa1, dfa2, nfa1 } from './example-automata';
 import { AutomatonDefinition,Automaton } from './automaton.interface';
-import { EPSILON } from './Constant';
+import { EPSILON, NFA1ForConvert } from './Constant';
 
 export const isNonDeterministic=(automaton: Automaton)=>{
     let checkFinteAutomatonIs =false
-    const states = Object.values(automaton.states)
+    const states = Object.values(automaton.states) // base state transaction to 
+
     states.forEach(element => {
       const on = Object.values(element)
       on.forEach(each =>{
@@ -38,6 +39,6 @@ export const isNonDeterministic=(automaton: Automaton)=>{
       return checkFinteAutomatonIs= "DFA"
     }
   }
-  const checkFinteAutomaton = CheckFinteAutomaton(dfa1) 
+  const checkFinteAutomaton = CheckFinteAutomaton(dfa2) 
 
 console.log("CheckFinteAutomaton:",checkFinteAutomaton)

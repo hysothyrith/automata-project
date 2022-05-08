@@ -45,3 +45,14 @@ export const nfa2: AutomatonDefinition = {
   startState: "q0",
   finalStates: ["q3"],
 };
+
+export const dfa2: AutomatonDefinition = {
+  symbols: ["0", "1"],
+  states: {
+    A: { on: { "0": "C", "1": "B" } },
+    B: { on: { "0": "","1":"C" } },
+    C: { on: { "0": "C","1": "C" } },
+  },
+  startState: "A",
+  finalStates: ["B","C"],
+};
