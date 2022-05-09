@@ -8,4 +8,11 @@ export interface AutomatonDefinition {
   finalStates: State[];
 }
 
-export type Automaton = Readonly<AutomatonDefinition>;
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+export type Automaton = Readonly<
+  Modify<
+    AutomatonDefinition,
+    { states: Readonly<AutomatonDefinition["states"]> }
+  >
+>;
