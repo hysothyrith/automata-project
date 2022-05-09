@@ -6,7 +6,15 @@ import { Automaton, AutomatonDefinition, State } from "./automaton.interface";
  * @returns a readonly object that describes the automaton.
  */
 export function create(definition: AutomatonDefinition): Automaton {
-  const { symbols, states, startState, finalStates } = definition;
+  const {
+    symbols: specifedSymbols,
+    states,
+    startState,
+    finalStates,
+  } = definition;
+  // The empty string is also a symbol that we may encouter, so we’re adding it
+  // to our `symbols` array
+  const symbols = [...specifedSymbols, ""];
 
   if (!startState) {
     throw new Error("`startState` must be defined.");

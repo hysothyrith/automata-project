@@ -27,6 +27,18 @@ describe("Automaton functions", () => {
       }).toThrowError();
     });
 
+    it("does not throw error when `states` contains a transition on epsilon", () => {
+      expect(() => {
+        create({
+          ...BASE_DEFINITION,
+          states: {
+            ...BASE_DEFINITION.states,
+            q0: { on: { "": "q0" } },
+          },
+        });
+      }).not.toThrowError();
+    });
+
     it("throws error when any component references an unspecified state", () => {
       expect(() => {
         create({ ...BASE_DEFINITION, startState: "UNSPECIFIED_STATE" });
