@@ -7,17 +7,6 @@ export const isNonDeterministic=(automaton: Automaton)=>{
     let checkFinteAutomatonIs = false
     const states = Object.values(automaton.states) // base state transaction to 
     states.forEach(element => {
-      // console.log("element:",element)
-      // export const dfa2: AutomatonDefinition = { // this is nfa 
-      //   symbols: ["0", "1"],
-      //   states: {
-      //     A: { on: { "0": "C", "1": "B" } },
-      //     B: { on: { "0": "","1":"C" } },
-      //     C: { on: { "0": "C","1": "C" } },
-      //   },
-      //   startState: "A",
-      //   finalStates: ["B","C"],
-      // };
       const on = Object.values(element)
       on.forEach(each =>{
         // console.log("each:",each)
