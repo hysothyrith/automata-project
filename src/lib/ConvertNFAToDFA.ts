@@ -26,8 +26,7 @@ export const ConvertNFAToDFA =(automaton:Automaton):any=>{
 }
 
 const ConvertWithoutEpsilon = (automaton:Automaton):any=>{
-    console.log("*********Convert without EPSILON ε  ***********")
-    
+    console.log("********* Convert without EPSILON ε  ***********")
     return "lkajsdf"
 }
 

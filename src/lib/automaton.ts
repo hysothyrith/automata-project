@@ -24,9 +24,9 @@ export function rejects(
 } 
 
 export const checkFinteAutomaton = (automaton: Automaton)=>{
-  return CheckFinteAutomaton(dfa2)
+  return CheckFinteAutomaton(automaton)
 }
-
+checkFinteAutomaton(dfa2)
 export function minimize(automaton: Automaton): Automaton {
   let startState = automaton.startState;
   let minimizeAutomaton = automaton;

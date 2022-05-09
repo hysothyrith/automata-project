@@ -46,7 +46,7 @@ export const nfa2: AutomatonDefinition = {
   finalStates: ["q3"],
 };
 
-export const dfa2: AutomatonDefinition = {
+export const dfa2: AutomatonDefinition = { // this is nfa 
   symbols: ["0", "1"],
   states: {
     A: { on: { "0": "C", "1": "B" } },
