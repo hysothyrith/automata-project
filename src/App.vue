@@ -22,7 +22,7 @@ let finalStates = ref(Array());
 let symbols = ref(Array(""));
 let times = ref(Array());
 let amountOfStates = ref(Array());
-let showGenerate = ref(true);
+let showGenerate = ref(false);
 let menu = [
   {
     label: "Test if a FA is deterministic or non-deterministic",

@@ -110,15 +110,47 @@ export function findP0(finalStates, states) {
 
 export function calculatePK(pK, symbols, transition) {
   let pKAdd1 = findPk(pK, symbols, transition);
+  let stop = false;
+
+  while (stop) {
+    let pK = pKAdd1;
+    pKAdd1 = findPk(pK, symbols, transition);
+    if (pK === pKAdd1) {
+      stop = true;
+    }
+  }
+  return pKAdd1;
+}
+
+export function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+
+  for (var i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }
 
 export function findPk(pk, symbols, transition) {
   let newPk = [];
   pk.forEach(element => {
     let result = findDistinguishOfSet(element, pk, symbols, transition);
-    if (result != element) {
+    if (result !== element) {
+      let newArray = [];
+      newPk.forEach(element => {
+        newArray.push(element);
+      });
+      result.forEach(element => {
+        newArray.push(element);
+      });
+      newPk = newArray;
+    } else {
+      newPk.push(result)
     }
   });
+  return newPk;
 }
 
 export function pairTransition(state1, state2, symbol, transition) {
