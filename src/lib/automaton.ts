@@ -89,7 +89,84 @@ export function isNonDeterministic(automaton: Automaton): boolean {
 }
 
 export function minimize(automaton: Automaton): Automaton {
-  throw new Error("TODO");
+  let symbols = automaton.symbols;
+  let startState = automaton.startState;
+  let finalStates = automaton.finalStates;
+  let states = Object.keys(automaton.states);
+  let transition = automaton.states;
+  let p0 = findP0(finalStates, states);
+  console.log(calculatePK(p0, symbols, transition));
+}
+
+export function findP0(finalStates, states) {
+  let nonFinalStates = []
+  states.forEach(element => {
+    if (!finalStates.includes(element)) {
+      nonFinalStates.push(element);
+    }
+  });
+  return [finalStates, nonFinalStates];
+}
+
+export function calculatePK(pK, symbols, transition) {
+  let pKAdd1 = findPk(pK, symbols, transition);
+}
+
+export function findPk(pk, symbols, transition) {
+  let newPk = [];
+  pk.forEach(element => {
+    let result = findDistinguishOfSet(element, pk, symbols, transition);
+    if (result != element) {
+    }
+  });
+}
+
+export function pairTransition(state1, state2, symbol, transition) {
+  let outputTransition1 = transition[state1]['on'][symbol];
+  let outputTransition2 = transition[state2]['on'][symbol];
+  return [outputTransition1, outputTransition2];
+}
+
+export function findDistinguishOfSet(setOfStates, pk, symbols, transition) {
+  let setOfDistinguish = [];
+  for (let i = 0; i < setOfStates.length; i++) {
+    for (let j = i + 1; j < setOfStates.length; j++) {
+      for (let symbol of symbols) {
+        let result = pairTransition(setOfStates[i], setOfStates[j], symbol, transition)
+        let isInTheSameSet = false;
+        for (let checkState of pk) {
+          if (checkState.includes(result[0]) && checkState.includes(result[1])) {
+            isInTheSameSet = true;
+          }
+        }
+        if (!isInTheSameSet) {
+          setOfDistinguish.push(setOfStates[i]);
+          setOfDistinguish.push(setOfStates[j]);
+        }
+      }
+    }
+  }
+  if (setOfDistinguish.length > 0) {
+    if (setOfDistinguish.length == 2) {
+      return [[setOfDistinguish[0]], [setOfDistinguish[1]]];
+    } else {
+      let distinguishState = [];
+      setOfDistinguish.forEach((element, index) => {
+        if (index != setOfDistinguish.indexOf(element)) {
+          distinguishState.push(element);
+        }
+      });
+      let newSetToReturn = [];
+      setOfStates.forEach(element => {
+        if (!distinguishState.includes(element)) {
+          newSetToReturn.push(element);
+        }
+      });
+      return [newSetToReturn, distinguishState];
+    }
+  } else {
+    return setOfStates;
+  }
 }
 
 export function determinize(automaton: Automaton): Automaton {
