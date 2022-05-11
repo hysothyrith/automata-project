@@ -44,3 +44,39 @@ export const nfa2: AutomatonDefinition = {
   startState: "q0",
   finalStates: ["q3"],
 };
+
+
+/**
+ * This DFA can be minimized.
+ */
+export const dfa2: AutomatonDefinition = {
+  symbols: ["a", "b"],
+  states: {
+    q0: { on: { a: "q1", b: "q5" } },
+    q1: { on: { a: "q6", b: "q2" } },
+    q2: { on: { b: "q2", a: "q0" } },
+    q3: { on: { a: "q2", b: "q6" } },
+    q4: { on: { a: "q7", b: "q5" } },
+    q5: { on: { a: "q2", b: "q6" } },
+    q6: { on: { a: "q6", b: "q4" } },
+    q7: { on: { a: "q6", b: "q2" } },
+  },
+  startState: "q0",
+  finalStates: ["q2"],
+};
+
+/**
+//  * This DFA can be minimized.
+//  */
+// export const dfa2: AutomatonDefinition = {
+//   symbols: ["a", "b"],
+//   states: {
+//     q0: { on: { a: "q1", b: "q3" } },
+//     q1: { on: { a: "q2", b: "q4" } },
+//     q2: { on: { a: "q1", b: "q4" } },
+//     q3: { on: { a: "q2", b: "q4" } },
+//     q4: { on: { a: "q4", b: "q4" } }
+//   },
+//   startState: "q0",
+//   finalStates: ["q4"],
+// };
