@@ -1,11 +1,11 @@
-import { coalesce } from "../utils/array.utils";
-import { isEqual } from "../utils/set.utils";
 import {
   Automaton,
   AutomatonDefinition,
   State,
   Symbol,
 } from "./automaton.interface";
+import { coalesce } from "../utils/array.utils";
+import { isEqual } from "../utils/set.utils";
 
 /**
  * The function to create an automaton that will be used by other functions in this library.
@@ -95,117 +95,112 @@ export function isNonDeterministic(automaton: Automaton): boolean {
   throw new Error("TODO");
 }
 
+/**
+ * When given an automaton, this function returns a new equivalent automaton but
+ * with the minimum number of states.
+ * @throws if the passed `automaton` is non-deterministic.
+ * @returns the new minimal automaton.
+ */
 export function minimize(automaton: Automaton): Automaton {
-  let symbols = automaton.symbols;
-  let startState = automaton.startState;
-  let finalStates = automaton.finalStates;
-  let states = Object.keys(automaton.states);
-  let transition = automaton.states;
-  let p0 = findP0(finalStates, states);
-  console.log(calculatePK(p0, symbols, transition));
-}
+  function transition(from: State, symbol: Symbol): State {
+    const nextState = automaton.states[from].on[symbol];
+    return Array.isArray(nextState) ? nextState[0] : nextState;
+  }
 
-export function findP0(finalStates, states) {
-  let nonFinalStates = []
-  states.forEach(element => {
-    if (!finalStates.includes(element)) {
-      nonFinalStates.push(element);
+  function getAccessibleStates(): State[] {
+    const accessibleStates = [automaton.startState];
+    for (
+      let indexToCheck = 0;
+      indexToCheck < accessibleStates.length;
+      indexToCheck++
+    ) {
+      const possibleNextStates = Object.values(
+        automaton.states[accessibleStates[indexToCheck]].on
+      ).map((state) => (Array.isArray(state) ? state[0] : state));
+
+      possibleNextStates.forEach((state) => {
+        if (!accessibleStates.includes(state)) {
+          accessibleStates.push(state);
+        }
+      });
+    }
+    return accessibleStates.sort();
+  }
+
+  function isDistinguishable(stateA: State, stateB: State): boolean {
+    const finalStates = new Set(automaton.finalStates);
+    if (
+      (finalStates.has(stateA) && !finalStates.has(stateB)) ||
+      (finalStates.has(stateB) && !finalStates.has(stateA))
+    ) {
+      return true;
+    }
+    if (stateA === stateB) {
+      return false;
+    }
+
+    return automaton.symbols.some((symbol) =>
+      isDistinguishable(transition(stateA, symbol), transition(stateB, symbol))
+    );
+  }
+
+  function getNewStateName(index: number) {
+    return `q${index}'`;
+  }
+
+  const accessibleStates = getAccessibleStates();
+  const statePairs: State[][] = [];
+  for (let i = 0; i < accessibleStates.length - 1; i++) {
+    for (let j = i + 1; j < accessibleStates.length; j++) {
+      statePairs.push([accessibleStates[i], accessibleStates[j]]);
+    }
+  }
+
+  const equivalentStates = statePairs.filter(
+    ([stateA, stateB]) => !isDistinguishable(stateA, stateB)
+  );
+
+  const minimalStates: Set<State>[] = [
+    ...equivalentStates.map((pair) => new Set(pair)),
+    ...accessibleStates
+      .filter((state) => !equivalentStates.some((pair) => pair.includes(state)))
+      .map((state) => new Set([state])),
+  ];
+
+  const minimalDefinition: AutomatonDefinition = {
+    symbols: automaton.symbols,
+    states: {},
+    startState: getNewStateName(
+      minimalStates.findIndex((stateSet) => stateSet.has(automaton.startState))
+    ),
+    finalStates: [],
+  };
+
+  automaton.finalStates.forEach((finalState) => {
+    const finalStateIndex = minimalStates.findIndex((stateSet) =>
+      stateSet.has(finalState)
+    );
+    if (finalStateIndex !== -1) {
+      minimalDefinition.finalStates.push(getNewStateName(finalStateIndex));
     }
   });
-  return [finalStates, nonFinalStates];
-}
 
-export function calculatePK(pK, symbols, transition) {
-  let pKAdd1 = findPk(pK, symbols, transition);
-  let stop = false;
+  minimalStates.forEach((stateSet, index) => {
+    const newStateName = getNewStateName(index);
+    minimalDefinition.states[newStateName] = { on: {} };
 
-  while (stop) {
-    let pK = pKAdd1;
-    pKAdd1 = findPk(pK, symbols, transition);
-    if (pK === pKAdd1) {
-      stop = true;
-    }
-  }
-  return pKAdd1;
-}
-
-export function arraysEqual(a, b) {
-  if (a === b) return true;
-  if (a == null || b == null) return false;
-  if (a.length !== b.length) return false;
-
-  for (var i = 0; i < a.length; ++i) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
-export function findPk(pk, symbols, transition) {
-  let newPk = [];
-  pk.forEach(element => {
-    let result = findDistinguishOfSet(element, pk, symbols, transition);
-    if (result !== element) {
-      let newArray = [];
-      newPk.forEach(element => {
-        newArray.push(element);
-      });
-      result.forEach(element => {
-        newArray.push(element);
-      });
-      newPk = newArray;
-    } else {
-      newPk.push(result)
+    for (const symbol of automaton.symbols) {
+      const [first] = stateSet;
+      const nextState = transition(first, symbol);
+      const nextStateIndex = minimalStates.findIndex((stateSet) =>
+        stateSet.has(nextState)
+      );
+      minimalDefinition.states[newStateName].on[symbol] =
+        getNewStateName(nextStateIndex);
     }
   });
-  return newPk;
-}
 
-export function pairTransition(state1, state2, symbol, transition) {
-  let outputTransition1 = transition[state1]['on'][symbol];
-  let outputTransition2 = transition[state2]['on'][symbol];
-  return [outputTransition1, outputTransition2];
-}
-
-export function findDistinguishOfSet(setOfStates, pk, symbols, transition) {
-  let setOfDistinguish = [];
-  for (let i = 0; i < setOfStates.length; i++) {
-    for (let j = i + 1; j < setOfStates.length; j++) {
-      for (let symbol of symbols) {
-        let result = pairTransition(setOfStates[i], setOfStates[j], symbol, transition)
-        let isInTheSameSet = false;
-        for (let checkState of pk) {
-          if (checkState.includes(result[0]) && checkState.includes(result[1])) {
-            isInTheSameSet = true;
-          }
-        }
-        if (!isInTheSameSet) {
-          setOfDistinguish.push(setOfStates[i]);
-          setOfDistinguish.push(setOfStates[j]);
-        }
-      }
-    }
-  }
-  if (setOfDistinguish.length > 0) {
-    if (setOfDistinguish.length == 2) {
-      return [[setOfDistinguish[0]], [setOfDistinguish[1]]];
-    } else {
-      let distinguishState = [];
-      setOfDistinguish.forEach((element, index) => {
-        if (index != setOfDistinguish.indexOf(element)) {
-          distinguishState.push(element);
-        }
-      });
-      let newSetToReturn = [];
-      setOfStates.forEach(element => {
-        if (!distinguishState.includes(element)) {
-          newSetToReturn.push(element);
-        }
-      });
-      return [newSetToReturn, distinguishState];
-    }
-  } else {
-    return setOfStates;
-  }
+  return create(minimalDefinition);
 }
 
 /**

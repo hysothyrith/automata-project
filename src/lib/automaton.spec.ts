@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { create, determinize } from "./automaton";
+import { create, determinize, minimize } from "./automaton";
 import { AutomatonDefinition } from "./automaton.interface";
 
 describe("Automaton functions", () => {
@@ -125,6 +125,42 @@ describe("Automaton functions", () => {
         "q0'": { on: { a: "q1'", b: "q1'" } },
         "q1'": { on: { a: "q0'", b: "q0'" } },
       });
+    });
+  });
+});
+
+describe("`minimize` function", () => {
+  it("minimizes automata", () => {
+    const dfa = create({
+      symbols: ["a", "b"],
+      states: {
+        q0: { on: { a: "q1", b: "q5" } },
+        q1: { on: { a: "q6", b: "q2" } },
+        q2: { on: { a: ["q0"], b: ["q2"] } },
+        q3: { on: { a: ["q2"], b: ["q6"] } },
+        q4: { on: { a: ["q7"], b: ["q5"] } },
+        q5: { on: { a: ["q2"], b: ["q6"] } },
+        q6: { on: { a: ["q6"], b: ["q4"] } },
+        q7: { on: { a: ["q6"], b: ["q2"] } },
+      },
+      startState: "q0",
+      finalStates: ["q2"],
+    });
+
+    const minimalDfa = minimize(dfa);
+
+    expect(minimalDfa.symbols).toEqual(dfa.symbols);
+    expect(minimalDfa.startState).toBe("q0'");
+    expect(minimalDfa.finalStates).toEqual(["q2'"]);
+
+    const statesCount = Object.keys(minimalDfa.states).length;
+    expect(statesCount).toBe(5);
+    expect(minimalDfa.states).toEqual({
+      "q0'": { on: { a: "q1'", b: "q3'" } },
+      "q1'": { on: { a: "q4'", b: "q2'" } },
+      "q2'": { on: { a: "q0'", b: "q2'" } },
+      "q3'": { on: { a: "q2'", b: "q4'" } },
+      "q4'": { on: { a: "q4'", b: "q0'" } },
     });
   });
 });
