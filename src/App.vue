@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { create, minimize } from "./lib/automaton";
-
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { ref, watch, computed, reactive } from "vue";
@@ -11,18 +10,17 @@ import Fieldset from "primevue/fieldset";
 import MultiSelect from "primevue/multiselect";
 import CascadeSelect from "primevue/cascadeselect";
 import Dropdown from "primevue/dropdown";
-import { dfa1 } from "./lib/example-automata";
 import SplitButton from "primevue/splitbutton";
-
+import { dfa2 } from "./lib/example-automata";
 const text = ref("");
-const dfa2 = create(dfa1);
+const dfa3 = create(dfa2);
 let numberStates = ref(null);
 let startState = ref(null);
 let finalStates = ref(Array());
 let symbols = ref(Array(""));
 let times = ref(Array());
 let amountOfStates = ref(Array());
-let showGenerate = ref(true);
+let showGenerate = ref(false);
 let menu = [
   {
     label: "Test if a FA is deterministic or non-deterministic",
@@ -37,14 +35,12 @@ let menu = [
     command: () => {},
   },
 ];
-
 let dfa = ref({
   symbols: [],
   startState: "",
   finalStates: [],
   states: {},
 });
-
 watch(numberStates, (currentValue, oldValue) => {
   amountOfStates.value = [];
   for (let i = 0; i < currentValue.valueOf(); i++) {
@@ -63,22 +59,22 @@ function generateOutput() {
       on: {},
     };
     symbols.value.forEach((symbol) => {
-      dfa.value.states[element]["on"][symbol] = "";
+      dfa.value.states[element]["on"][symbol] = [];
     });
-    dfa.value.states[element]["on"]["ε"] = "";
+    dfa.value.states[element]["on"]["ε"] = [];
   });
   showGenerate.value = true;
 }
 function designFa() {
-  minimize(dfa2);
+  minimize(dfa3);
 }
 </script>
 
 <template>
   <div>
     <Fieldset legend="Automation">
-      <Splitter style="min-height: 300px">
-        <SplitterPanel :size="30">
+      <Splitter>
+        <SplitterPanel>
           <div class="container p-5">
             <div class="mt-3">
               <h5>Number of States</h5>
@@ -144,7 +140,7 @@ function designFa() {
             </div>
           </div>
         </SplitterPanel>
-        <SplitterPanel :size="70">
+        <SplitterPanel>
           <div class="p-5" v-if="showGenerate">
             <table class="table table-bordered">
               <thead class="text-center">
@@ -160,11 +156,13 @@ function designFa() {
                 <tr v-for="(state, key) in dfa.states" :key="key">
                   <td>{{ key }}</td>
                   <td v-for="(symbol, index) in state.on" :key="index">
-                    <Dropdown
+                    <MultiSelect
                       :options="amountOfStates"
                       v-model="state.on[index]"
                       placeholder="Select State"
                       style="width: 100%"
+                      :showToggleAll="false"
+                      display="chip"
                     />
                   </td>
                 </tr>
