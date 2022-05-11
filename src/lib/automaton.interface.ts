@@ -1,4 +1,4 @@
-export type Symbol = string;
+export type Symbol = any;
 export type State = string;
 
 export interface AutomatonDefinition {

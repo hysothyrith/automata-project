@@ -14,6 +14,18 @@ export const dfa1: AutomatonDefinition = {
   finalStates: ["q1"],
 };
 
+export const dfa2: AutomatonDefinition = {
+  symbols: [0, 1],
+  states: {
+    q0: { on: { a: "q0", b: "q1" } },
+    q1: { on: { a: "q2", b: "q2" } },
+    q2: { on: { a: "q2", b: "q2" } },
+    q3: { on: { a: "q2", b: "q2" } },
+  },
+  startState: 'q0',
+  finalStates: ["q1"],
+};
+
 /**
  * This NFA should accept all strings containing `b` at either the second or
  * third position from the end.
