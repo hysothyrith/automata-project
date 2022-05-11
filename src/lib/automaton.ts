@@ -1,4 +1,11 @@
-import { Automaton, AutomatonDefinition, State } from "./automaton.interface";
+import { coalesce } from "../utils/array.utils";
+import { isEqual } from "../utils/set.utils";
+import {
+  Automaton,
+  AutomatonDefinition,
+  State,
+  Symbol,
+} from "./automaton.interface";
 
 /**
  * The function to create an automaton that will be used by other functions in this library.
@@ -201,6 +208,93 @@ export function findDistinguishOfSet(setOfStates, pk, symbols, transition) {
   }
 }
 
+/**
+ * The function to determinize an automaton, i.e. convert a non-deterministic
+ * automaton to a deterministic one.
+ * @returns the new determinized automaton
+ */
 export function determinize(automaton: Automaton): Automaton {
-  throw new Error("TODO");
+  function transition(from: State, symbol: Symbol): State | State[] {
+    return automaton.states[from].on[symbol];
+  }
+
+  function epsilonClose(states: Iterable<State>): Set<State> {
+    const resultStates = new Set(states);
+
+    function findEpsilonTransition(state: State) {
+      const nextStates = transition(state, "");
+      if (!nextStates) return;
+
+      for (const state of coalesce(nextStates)) {
+        if (!resultStates.has(state)) {
+          resultStates.add(state);
+          findEpsilonTransition(state);
+        }
+      }
+    }
+
+    for (const state of states) {
+      findEpsilonTransition(state);
+    }
+
+    return resultStates;
+  }
+
+  function processStates(states: Iterable<State>, symbol: Symbol) {
+    const resultStates = new Set<State>();
+
+    for (const state of states) {
+      for (const nextState of coalesce(transition(state, symbol))) {
+        nextState && resultStates.add(nextState);
+      }
+    }
+
+    return epsilonClose(resultStates);
+  }
+
+  function getNewStateName(index: number) {
+    return `q${index}'`;
+  }
+
+  const newStates: Set<State>[] = [epsilonClose([automaton.startState])];
+  const newStatesDefinition: AutomatonDefinition["states"] = {};
+
+  for (let i = 0; i < newStates.length; i++) {
+    const setToProcess = newStates[i];
+
+    for (const symbol of automaton.symbols) {
+      const resultStates = processStates(setToProcess, symbol);
+      const sameSetIndex = newStates.findIndex((stateSet) =>
+        isEqual(stateSet, resultStates)
+      );
+      if (sameSetIndex === -1) {
+        newStates.push(resultStates);
+      }
+
+      const from = getNewStateName(i);
+      if (!newStatesDefinition[from]) {
+        newStatesDefinition[from] = { on: {} };
+      }
+      const to = getNewStateName(
+        sameSetIndex === -1 ? newStates.length - 1 : sameSetIndex
+      );
+      newStatesDefinition[from].on[symbol] = to;
+    }
+  }
+
+  const finalStates: State[] = [];
+  automaton.finalStates.forEach((finalState) => {
+    newStates.forEach((stateSet, index) => {
+      if (stateSet.has(finalState)) {
+        finalStates.push(getNewStateName(index));
+      }
+    });
+  });
+
+  return create({
+    symbols: automaton.symbols,
+    states: newStatesDefinition,
+    startState: "q0'",
+    finalStates,
+  });
 }

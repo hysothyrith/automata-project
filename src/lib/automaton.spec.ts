@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { create } from "./automaton";
+import { create, determinize } from "./automaton";
 import { AutomatonDefinition } from "./automaton.interface";
 
 describe("Automaton functions", () => {
@@ -76,6 +76,55 @@ describe("Automaton functions", () => {
       expect(() => {
         create({ ...BASE_DEFINITION, startState: "" });
       }).toThrowError();
+    });
+  });
+
+  describe("`determinize` function", () => {
+    it("determinizes automata", () => {
+      const nfa = create({
+        symbols: ["a", "b"],
+        states: {
+          q0: { on: { a: "q0", b: ["q0", "q1"] } },
+          q1: { on: { a: "q2", b: "q2", "": "q2" } },
+          q2: { on: { a: "q3", b: "q3" } },
+          q3: { on: {} },
+        },
+        startState: "q0",
+        finalStates: ["q3"],
+      });
+      const dfa = determinize(nfa);
+
+      expect(dfa.symbols).toEqual(["a", "b"]);
+      expect(dfa.startState).toBe("q0'");
+      expect(dfa.finalStates.sort()).toEqual(["q2'", "q3'", "q4'"].sort());
+      expect(dfa.states).toEqual({
+        "q0'": { on: { a: "q0'", b: "q1'" } },
+        "q1'": { on: { a: "q2'", b: "q3'" } },
+        "q2'": { on: { a: "q4'", b: "q3'" } },
+        "q3'": { on: { a: "q2'", b: "q3'" } },
+        "q4'": { on: { a: "q0'", b: "q1'" } },
+      });
+    });
+
+    it("works even on deterministic automata", () => {
+      const dfa = create({
+        symbols: ["a", "b"],
+        states: {
+          q0: { on: { a: "q1", b: "q1" } },
+          q1: { on: { a: "q0", b: "q0" } },
+        },
+        startState: "q0",
+        finalStates: ["q1"],
+      });
+      const determinized = determinize(dfa);
+
+      expect(determinized.symbols).toEqual(dfa.symbols);
+      expect(determinized.startState).toBe("q0'");
+      expect(determinized.finalStates).toEqual(["q1'"]);
+      expect(determinized.states).toEqual({
+        "q0'": { on: { a: "q1'", b: "q1'" } },
+        "q1'": { on: { a: "q0'", b: "q0'" } },
+      });
     });
   });
 });
