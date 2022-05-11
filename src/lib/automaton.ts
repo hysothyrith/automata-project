@@ -1,8 +1,16 @@
+
 import { nfa1,dfa1, dfa2 } from "./example-automata";
 import { EPSILON, NFA1ForConvert } from './Constant';
 import { CheckFinteAutomaton } from "./CheckTypeAutomaton";
 import { ConvertNFAToDFA } from './ConvertNFAToDFA';
-import { Automaton, AutomatonDefinition, State } from "./automaton.interface";
+import {
+  Automaton,
+  AutomatonDefinition,
+  State,
+  Symbol,
+} from "./automaton.interface";
+import { coalesce } from "../utils/array.utils";
+import { isEqual } from "../utils/set.utils";
 
 
 /**
@@ -88,40 +96,202 @@ export function rejects(
 export const checkFinteAutomaton = (automaton: Automaton)=>{
   return CheckFinteAutomaton(automaton)
 }
-checkFinteAutomaton(dfa1)
-export function minimize(automaton: Automaton): Automaton {
-  let startState = automaton.startState;
-  let minimizeAutomaton = automaton;
 
-  //Step 1
-  //remove non accesible
-  let wantedState = Array(startState);
-  let states = Array();
-  Object.keys(automaton.states).forEach(state => {
-    if (startState == state || !wantedState.includes(state)) {
-      Object.keys(automaton.states[state]['on']).forEach(symbol => {
-        if (!wantedState.includes(automaton.states[state]['on'][symbol])) {
-          wantedState.push(automaton.states[state]['on'][symbol])
+/**
+ * When given an automaton, this function returns a new equivalent automaton but
+ * with the minimum number of states.
+ * @throws if the passed `automaton` is non-deterministic.
+ * @returns the new minimal automaton.
+ */
+export function minimize(automaton: Automaton): Automaton {
+  function transition(from: State, symbol: Symbol): State {
+    const nextState = automaton.states[from].on[symbol];
+    return Array.isArray(nextState) ? nextState[0] : nextState;
+  }
+
+  function getAccessibleStates(): State[] {
+    const accessibleStates = [automaton.startState];
+    for (
+      let indexToCheck = 0;
+      indexToCheck < accessibleStates.length;
+      indexToCheck++
+    ) {
+      const possibleNextStates = Object.values(
+        automaton.states[accessibleStates[indexToCheck]].on
+      ).map((state) => (Array.isArray(state) ? state[0] : state));
+
+      possibleNextStates.forEach((state) => {
+        if (!accessibleStates.includes(state)) {
+          accessibleStates.push(state);
         }
       });
     }
-    states.push(state);
-  });
-  Object.keys(minimizeAutomaton.states).forEach(key => {
-    if (!wantedState.includes(key)) delete minimizeAutomaton.states[key]
+    return accessibleStates.sort();
+  }
+
+  function isDistinguishable(stateA: State, stateB: State): boolean {
+    const finalStates = new Set(automaton.finalStates);
+    if (
+      (finalStates.has(stateA) && !finalStates.has(stateB)) ||
+      (finalStates.has(stateB) && !finalStates.has(stateA))
+    ) {
+      return true;
+    }
+    if (stateA === stateB) {
+      return false;
+    }
+
+    return automaton.symbols.some((symbol) =>
+      isDistinguishable(transition(stateA, symbol), transition(stateB, symbol))
+    );
+  }
+
+  function getNewStateName(index: number) {
+    return `q${index}'`;
+  }
+
+  const accessibleStates = getAccessibleStates();
+  const statePairs: State[][] = [];
+  for (let i = 0; i < accessibleStates.length - 1; i++) {
+    for (let j = i + 1; j < accessibleStates.length; j++) {
+      statePairs.push([accessibleStates[i], accessibleStates[j]]);
+    }
+  }
+
+  const equivalentStates = statePairs.filter(
+    ([stateA, stateB]) => !isDistinguishable(stateA, stateB)
+  );
+
+  const minimalStates: Set<State>[] = [
+    ...equivalentStates.map((pair) => new Set(pair)),
+    ...accessibleStates
+      .filter((state) => !equivalentStates.some((pair) => pair.includes(state)))
+      .map((state) => new Set([state])),
+  ];
+
+  const minimalDefinition: AutomatonDefinition = {
+    symbols: automaton.symbols,
+    states: {},
+    startState: getNewStateName(
+      minimalStates.findIndex((stateSet) => stateSet.has(automaton.startState))
+    ),
+    finalStates: [],
+  };
+
+  automaton.finalStates.forEach((finalState) => {
+    const finalStateIndex = minimalStates.findIndex((stateSet) =>
+      stateSet.has(finalState)
+    );
+    if (finalStateIndex !== -1) {
+      minimalDefinition.finalStates.push(getNewStateName(finalStateIndex));
+    }
   });
 
-  //Step 2
+  minimalStates.forEach((stateSet, index) => {
+    const newStateName = getNewStateName(index);
+    minimalDefinition.states[newStateName] = { on: {} };
 
+    for (const symbol of automaton.symbols) {
+      const [first] = stateSet;
+      const nextState = transition(first, symbol);
+      const nextStateIndex = minimalStates.findIndex((stateSet) =>
+        stateSet.has(nextState)
+      );
+      minimalDefinition.states[newStateName].on[symbol] =
+        getNewStateName(nextStateIndex);
+    }
+  });
+
+  return create(minimalDefinition);
 }
 
-
-export const Conversion = (automaton: Automaton):Automaton=>{
-  return ConvertNFAToDFA(automaton) 
-}
-
-Conversion(NFA1ForConvert)
-
+/**
+ * The function to determinize an automaton, i.e. convert a non-deterministic
+ * automaton to a deterministic one.
+ * @returns the new determinized automaton
+ */
 export function determinize(automaton: Automaton): Automaton {
-  throw new Error("TODO");
+  function transition(from: State, symbol: Symbol): State | State[] {
+    return automaton.states[from].on[symbol];
+  }
+
+  function epsilonClose(states: Iterable<State>): Set<State> {
+    const resultStates = new Set(states);
+
+    function findEpsilonTransition(state: State) {
+      const nextStates = transition(state, "");
+      if (!nextStates) return;
+
+      for (const state of coalesce(nextStates)) {
+        if (!resultStates.has(state)) {
+          resultStates.add(state);
+          findEpsilonTransition(state);
+        }
+      }
+    }
+
+    for (const state of states) {
+      findEpsilonTransition(state);
+    }
+
+    return resultStates;
+  }
+
+  function processStates(states: Iterable<State>, symbol: Symbol) {
+    const resultStates = new Set<State>();
+
+    for (const state of states) {
+      for (const nextState of coalesce(transition(state, symbol))) {
+        nextState && resultStates.add(nextState);
+      }
+    }
+
+    return epsilonClose(resultStates);
+  }
+
+  function getNewStateName(index: number) {
+    return `q${index}'`;
+  }
+
+  const newStates: Set<State>[] = [epsilonClose([automaton.startState])];
+  const newStatesDefinition: AutomatonDefinition["states"] = {};
+
+  for (let i = 0; i < newStates.length; i++) {
+    const setToProcess = newStates[i];
+
+    for (const symbol of automaton.symbols) {
+      const resultStates = processStates(setToProcess, symbol);
+      const sameSetIndex = newStates.findIndex((stateSet) =>
+        isEqual(stateSet, resultStates)
+      );
+      if (sameSetIndex === -1) {
+        newStates.push(resultStates);
+      }
+
+      const from = getNewStateName(i);
+      if (!newStatesDefinition[from]) {
+        newStatesDefinition[from] = { on: {} };
+      }
+      const to = getNewStateName(
+        sameSetIndex === -1 ? newStates.length - 1 : sameSetIndex
+      );
+      newStatesDefinition[from].on[symbol] = to;
+    }
+  }
+
+  const finalStates: State[] = [];
+  automaton.finalStates.forEach((finalState) => {
+    newStates.forEach((stateSet, index) => {
+      if (stateSet.has(finalState)) {
+        finalStates.push(getNewStateName(index));
+      }
+    });
+  });
+
+  return create({
+    symbols: automaton.symbols,
+    states: newStatesDefinition,
+    startState: "q0'",
+    finalStates,
+  });
 }
