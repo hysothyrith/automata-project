@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { create, minimize } from "./lib/automaton";
-
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { ref, watch, computed, reactive } from "vue";
@@ -13,7 +12,6 @@ import CascadeSelect from "primevue/cascadeselect";
 import Dropdown from "primevue/dropdown";
 import SplitButton from "primevue/splitbutton";
 import { dfa2 } from "./lib/example-automata";
-
 const text = ref("");
 const dfa3 = create(dfa2);
 let numberStates = ref(null);
@@ -37,14 +35,12 @@ let menu = [
     command: () => {},
   },
 ];
-
 let dfa = ref({
   symbols: [],
   startState: "",
   finalStates: [],
   states: {},
 });
-
 watch(numberStates, (currentValue, oldValue) => {
   amountOfStates.value = [];
   for (let i = 0; i < currentValue.valueOf(); i++) {

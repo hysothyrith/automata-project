@@ -1,3 +1,8 @@
+
+import { nfa1,dfa1, dfa2 } from "./example-automata";
+import { EPSILON, NFA1ForConvert } from './Constant';
+import { CheckFinteAutomaton } from "./CheckTypeAutomaton";
+import { ConvertNFAToDFA } from './ConvertNFAToDFA';
 import {
   Automaton,
   AutomatonDefinition,
@@ -6,6 +11,7 @@ import {
 } from "./automaton.interface";
 import { coalesce } from "../utils/array.utils";
 import { isEqual } from "../utils/set.utils";
+
 
 /**
  * The function to create an automaton that will be used by other functions in this library.
@@ -85,14 +91,10 @@ export function rejects(
   input: string | string[]
 ): boolean {
   throw new Error("TODO");
-}
+} 
 
-export function isDeterministic(automaton: Automaton): boolean {
-  throw new Error("TODO");
-}
-
-export function isNonDeterministic(automaton: Automaton): boolean {
-  throw new Error("TODO");
+export const checkFinteAutomaton = (automaton: Automaton)=>{
+  return CheckFinteAutomaton(automaton)
 }
 
 /**

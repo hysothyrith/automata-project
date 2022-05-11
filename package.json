@@ -5,17 +5,20 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build-test":"vite build"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.5",
+    "bootstrap": "^5.1.3",
+    "bootstrap-vue": "^2.22.0",
     "@types/cytoscape": "^3.19.4",
     "cytoscape": "^3.21.1",
     "primeicons": "^5.0.0",
     "primevue": "^3.12.6",
-    "vue": "^3.2.25",
-    "bootstrap": "^5.1.3",
-    "bootstrap-vue": "^2.22.0",
-    "@popperjs/core": "^2.11.5"
+    "vue": "^3.2.33",
+    "vue-multiselect": "^2.1.6",
+    "vue-router": "^3.5.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^2.3.1",
