@@ -138,7 +138,7 @@ export function testStringDFA(
       return false;
     }
   }
-  console.log(finalStates.includes(currentState))
+
   if (finalStates.includes(currentState)) {
     console.log("Accepeted")
     return true;
