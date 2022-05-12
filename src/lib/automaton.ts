@@ -97,6 +97,57 @@ export const checkFinteAutomaton = (automaton: Automaton)=>{
   return CheckFinteAutomaton(automaton)
 }
 
+export function testString(
+  automata: Automaton,
+  input: string | string[]
+) : boolean {
+  const FiniteType = checkFinteAutomaton(automata);
+
+  if(FiniteType === "DFA"){
+    return testStringDFA(automata, input);
+  } else {
+    const dfa = determinize(automata);
+    return testStringDFA(dfa, input);
+  }
+
+}
+
+export function testStringDFA(
+  automaton: Automaton,
+  input: string | string[]
+) : boolean {
+
+  const dfa = automaton;
+  console.log(dfa)
+  const inputString = input;
+  const startState = dfa.startState;
+  const finalStates = dfa.finalStates;
+  const states = dfa.states;
+  const symbols = dfa.symbols;
+  const inputStringArray = inputString.split("");
+  let currentState = startState;
+  let currentSymbol = "";
+  let currentIndex = 0;
+
+  while (currentIndex < inputStringArray.length) {
+    currentSymbol = inputStringArray[currentIndex];
+    if (states[currentState].on[currentSymbol]) {
+      currentState = states[currentState].on[currentSymbol];
+      currentIndex++;
+    } else {
+      return false;
+    }
+  }
+  console.log(finalStates.includes(currentState))
+  if (finalStates.includes(currentState)) {
+    console.log("Accepeted")
+    return true;
+  } else {
+    console.log("Rejected")
+    return false;
+  }
+}
+
 /**
  * When given an automaton, this function returns a new equivalent automaton but
  * with the minimum number of states.
