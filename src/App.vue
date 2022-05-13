@@ -12,6 +12,7 @@ import CascadeSelect from "primevue/cascadeselect";
 import Dropdown from "primevue/dropdown";
 import SplitButton from "primevue/splitbutton";
 import { dfa2 } from "./lib/example-automata";
+import { saveFile, loadFile } from "./lib/FileWriter";
 const text = ref("");
 const dfa3 = create(dfa2);
 let numberStates = ref(null);
@@ -138,6 +139,20 @@ function designFa() {
                 <button class="btn btn-success col-4">Test</button>
               </div>
             </div>
+               <div class="mt-5">
+              <div class="row">
+                <div class="col-8">
+                  <InputText
+                    id="file_name"
+                    v-model="fileName"
+                    type="text"
+                    class="form-control"
+                    placeholder="File name"
+                  />
+                </div>
+                <button class="btn btn-success col-4" @click="saveFile( fileName,dfa.value)">Save</button>
+              </div>
+            </div>
           </div>
         </SplitterPanel>
         <SplitterPanel>
@@ -175,9 +190,12 @@ function designFa() {
                 :model="menu"
               ></SplitButton>
             </div>
+            
           </div>
         </SplitterPanel>
       </Splitter>
     </Fieldset>
+        
   </div>
+
 </template>
