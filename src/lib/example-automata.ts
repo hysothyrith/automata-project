@@ -67,7 +67,7 @@ export const dfa2: AutomatonDefinition = {
   states: {
     q0: { on: { a: "q1", b: "q5" } },
     q1: { on: { a: "q6", b: "q2" } },
-    q2: { on: { b: "q2", a: "q0" } },
+    q2: { on: { a: "q0", b: "q2" } },
     q3: { on: { a: "q2", b: "q6" } },
     q4: { on: { a: "q7", b: "q5" } },
     q5: { on: { a: "q2", b: "q6" } },
