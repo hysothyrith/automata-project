@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { create, minimize } from "./lib/automaton";
+import { create, minimize, testString } from "./lib/automaton";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { ref, watch, computed, reactive } from "vue";
@@ -11,8 +11,9 @@ import MultiSelect from "primevue/multiselect";
 import CascadeSelect from "primevue/cascadeselect";
 import Dropdown from "primevue/dropdown";
 import SplitButton from "primevue/splitbutton";
+import FileUpload from 'primevue/fileupload';
 import { dfa2 } from "./lib/example-automata";
-import { saveFile, loadFile } from "./lib/FileWriter";
+
 const text = ref("");
 const dfa3 = create(dfa2);
 let numberStates = ref(null);
@@ -22,6 +23,7 @@ let symbols = ref(Array(""));
 let times = ref(Array());
 let amountOfStates = ref(Array());
 let showGenerate = ref(false);
+
 let menu = [
   {
     label: "Test if a FA is deterministic or non-deterministic",
@@ -132,11 +134,12 @@ function designFa() {
                   <InputText
                     id="number_states"
                     type="text"
+                    v-model="test_symbols"
                     class="form-control"
                     placeholder="Symbol"
                   />
                 </div>
-                <button class="btn btn-success col-4">Test</button>
+                <button class="btn btn-success col-4"  @click="testString(dfa,test_symbols)">Test</button>
               </div>
             </div>
                <div class="mt-5">
@@ -150,7 +153,12 @@ function designFa() {
                     placeholder="File name"
                   />
                 </div>
-                <button class="btn btn-success col-4" @click="saveFile( fileName,dfa.value)">Save</button>
+              
+                <button class="btn btn-success col-4" @click="saveFile(fileName,dfa)">Save</button>
+              </div>
+              <div class="mt-5">
+                  <FileUpload mode="basic" name="fileToRead" @change="loadTextFromFile" />
+                <input type="file" @change="loadTextFromFile">
               </div>
             </div>
           </div>

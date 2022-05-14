@@ -11,6 +11,7 @@ import {
 } from "./automaton.interface";
 import { coalesce } from "../utils/array.utils";
 import { isEqual } from "../utils/set.utils";
+import { auto } from "@popperjs/core";
 
 
 /**
@@ -71,11 +72,11 @@ export function create(definition: AutomatonDefinition): Automaton {
   });
 
   // We’ll freeze the definition before returning it to avoid mutation.
-  Object.freeze(definition);
-  Object.freeze(definition.states);
-  Object.keys(definition.states).forEach((state) => {
-    Object.freeze(definition.states[state]);
-  });
+  // Object.freeze(definition);
+  // Object.freeze(definition.states);
+  // Object.keys(definition.states).forEach((state) => {
+  //   Object.freeze(definition.states[state]);
+  // });
   return definition;
 }
 
@@ -345,4 +346,27 @@ export function determinize(automaton: Automaton): Automaton {
     startState: "q0'",
     finalStates,
   });
+}
+
+export function cleanData(automata: Automaton): Automaton {
+  let check = false;
+  for(let state in automata.states) {
+    for(let symbol in automata.states[state].on) {
+      if(!symbol && automata.states[state].on[symbol].length > 0)
+      {
+        check = true;
+      }
+    }
+  }
+  if(!check)
+  {
+    for(let state in automata.states) {
+      for (let symbol in automata.states[state].on) {
+        if(!symbol) {
+          delete automata.states[state].on[symbol];
+        }
+      }
+    }
+  }
+  return automata;
 }
