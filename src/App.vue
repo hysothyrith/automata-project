@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { create, minimize, testString } from "./lib/automaton";
+import {
+  create,
+  minimize,
+  checkFinteAutomaton,
+  cleanData,
+  determinize,
+  testString,
+} from "./lib/automaton";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
-import { ref, watch, computed, reactive } from "vue";
+import { ref, watch, computed, reactive, defineComponent } from "vue";
 import Card from "primevue/card";
 import Splitter from "primevue/splitter";
 import SplitterPanel from "primevue/splitterpanel";
@@ -11,8 +18,15 @@ import MultiSelect from "primevue/multiselect";
 import CascadeSelect from "primevue/cascadeselect";
 import Dropdown from "primevue/dropdown";
 import SplitButton from "primevue/splitbutton";
-import FileUpload from 'primevue/fileupload';
+import Dialog from "primevue/dialog";
+import AutomatonGraphVue from "./components/AutomatonGraph.vue";
+import Toast from "primevue/toast";
+import Message from "primevue/message";
+import Divider from "primevue/divider";
+import FileUpload from "primevue/fileupload";
+import { useToast } from "primevue/usetoast";
 import { dfa2 } from "./lib/example-automata";
+import { saveFile } from "./lib/FileWriter";
 
 const text = ref("");
 const dfa3 = create(dfa2);
@@ -23,19 +37,34 @@ let symbols = ref(Array(""));
 let times = ref(Array());
 let amountOfStates = ref(Array());
 let showGenerate = ref(false);
+let displayBasic = ref(false);
+const toast = useToast();
+let severity = ref("success");
+let symbols_input = ref("");
 
 let menu = [
   {
     label: "Test if a FA is deterministic or non-deterministic",
-    command: () => {},
+    command: () => {
+      severity.value = "success";
+      text.value = checkFinteAutomaton(cleanData(dfa.value));
+    },
   },
   {
-    label: "Construct an equivalent DFA from an NFA",
-    command: () => {},
+    label: "Convert NFA to DFA",
+    command: () => {
+      automaton.value = cleanData(dfa.value);
+      automaton.value = determinize(automaton.value);
+      displayBasic.value = true;
+    },
   },
   {
     label: "Minimize a DFA",
-    command: () => {},
+    command: () => {
+      automaton.value = cleanData(dfa.value);
+      automaton.value = minimize(automaton.value);
+      displayBasic.value = true;
+    },
   },
 ];
 let dfa = ref({
@@ -44,12 +73,24 @@ let dfa = ref({
   finalStates: [],
   states: {},
 });
+let automaton = ref();
 watch(numberStates, (currentValue, oldValue) => {
   amountOfStates.value = [];
   for (let i = 0; i < currentValue.valueOf(); i++) {
     amountOfStates.value.push("q" + i);
   }
 });
+
+function testSymbols(dfa, symbols_input) {
+  if (testString(dfa, symbols_input)) {
+    severity.value = "success";
+    text.value = "Accepted";
+  } else {
+    severity.value = "error";
+    text.value = "Rejected";
+  }
+}
+
 function addSymbol() {
   symbols.value.push("");
 }
@@ -64,12 +105,17 @@ function generateOutput() {
     symbols.value.forEach((symbol) => {
       dfa.value.states[element]["on"][symbol] = [];
     });
-    dfa.value.states[element]["on"]["ε"] = [];
+    dfa.value.states[element]["on"][""] = [];
   });
   showGenerate.value = true;
 }
 function designFa() {
-  minimize(dfa3);
+  text.value = "";
+  automaton.value = create(dfa.value);
+  displayBasic.value = true;
+}
+function closeBasic() {
+  displayBasic.value = false;
 }
 </script>
 
@@ -134,31 +180,39 @@ function designFa() {
                   <InputText
                     id="number_states"
                     type="text"
-                    v-model="test_symbols"
+                    v-model="symbols_input"
                     class="form-control"
                     placeholder="Symbol"
                   />
                 </div>
-                <button class="btn btn-success col-4"  @click="testString(dfa,test_symbols)">Test</button>
+                <button
+                  class="btn btn-success col-4"
+                  :disabled="dfa.symbols.length == 0"
+                  @click="testSymbols(dfa, symbols_input)"
+                >
+                  Test
+                </button>
               </div>
             </div>
-               <div class="mt-5">
+
+            <div class="mt-5">
+              <hr />
               <div class="row">
+                <h5>File</h5>
                 <div class="col-8">
                   <InputText
-                    id="file_name"
-                    v-model="fileName"
                     type="text"
+                    v-model="filename"
                     class="form-control"
-                    placeholder="File name"
+                    placeholder="save file"
                   />
                 </div>
-              
-                <button class="btn btn-success col-4" @click="saveFile(fileName,dfa)">Save</button>
-              </div>
-              <div class="mt-5">
-                  <FileUpload mode="basic" name="fileToRead" @change="loadTextFromFile" />
-                <input type="file" @change="loadTextFromFile">
+                <button
+                  class="btn btn-success col-4"
+                  @click="saveFile(filename, dfa)"
+                >
+                  Save
+                </button>
               </div>
             </div>
           </div>
@@ -198,12 +252,37 @@ function designFa() {
                 :model="menu"
               ></SplitButton>
             </div>
-            
+
+            <Message
+              v-if="text"
+              :life="5000"
+              :severity="severity"
+              :closable="false"
+              >{{ text }}</Message
+            >
           </div>
         </SplitterPanel>
       </Splitter>
-    </Fieldset>
-        
-  </div>
+      <Dialog
+        header="Graph"
+        v-model:visible="displayBasic"
+        :style="{ width: '50vw' }"
+      >
+        <AutomatonGraphVue
+          :automaton="automaton"
+          :height="'500px'"
+          :width="'100%'"
+        />
 
+        <template #footer>
+          <Button
+            label="Close"
+            icon="pi pi-check"
+            @click="closeBasic"
+            autofocus
+          />
+        </template>
+      </Dialog>
+    </Fieldset>
+  </div>
 </template>
