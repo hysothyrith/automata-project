@@ -5,6 +5,7 @@ import {
   checkFinteAutomaton,
   cleanData,
   determinize,
+  testString,
 } from "./lib/automaton";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
@@ -21,9 +22,12 @@ import Dialog from "primevue/dialog";
 import AutomatonGraphVue from "./components/AutomatonGraph.vue";
 import Toast from "primevue/toast";
 import Message from "primevue/message";
-
+import Divider from "primevue/divider";
+import FileUpload from "primevue/fileupload";
 import { useToast } from "primevue/usetoast";
 import { dfa2 } from "./lib/example-automata";
+import { saveFile } from "./lib/FileWriter";
+
 const text = ref("");
 const dfa3 = create(dfa2);
 let numberStates = ref(null);
@@ -36,6 +40,7 @@ let showGenerate = ref(false);
 let displayBasic = ref(false);
 const toast = useToast();
 let severity = ref("success");
+let symbols_input = ref("");
 
 let menu = [
   {
@@ -75,6 +80,17 @@ watch(numberStates, (currentValue, oldValue) => {
     amountOfStates.value.push("q" + i);
   }
 });
+
+function testSymbols(dfa, symbols_input) {
+  if (testString(dfa, symbols_input)) {
+    severity.value = "success";
+    text.value = "Accepted";
+  } else {
+    severity.value = "error";
+    text.value = "Rejected";
+  }
+}
+
 function addSymbol() {
   symbols.value.push("");
 }
@@ -164,11 +180,39 @@ function closeBasic() {
                   <InputText
                     id="number_states"
                     type="text"
+                    v-model="symbols_input"
                     class="form-control"
                     placeholder="Symbol"
                   />
                 </div>
-                <button class="btn btn-success col-4">Test</button>
+                <button
+                  class="btn btn-success col-4"
+                  :disabled="dfa.symbols.length == 0"
+                  @click="testSymbols(dfa, symbols_input)"
+                >
+                  Test
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-5">
+              <hr />
+              <div class="row">
+                <h5>File</h5>
+                <div class="col-8">
+                  <InputText
+                    type="text"
+                    v-model="filename"
+                    class="form-control"
+                    placeholder="save file"
+                  />
+                </div>
+                <button
+                  class="btn btn-success col-4"
+                  @click="saveFile(filename, dfa)"
+                >
+                  Save
+                </button>
               </div>
             </div>
           </div>
@@ -208,6 +252,7 @@ function closeBasic() {
                 :model="menu"
               ></SplitButton>
             </div>
+
             <Message
               v-if="text"
               :life="5000"
