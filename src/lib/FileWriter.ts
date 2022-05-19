@@ -13,8 +13,8 @@ export function saveFile(fileName: string, data: any) {
 
 // load file from local computer as a .json file
 export function openFile() {
-    console.log(document.getElementById("fileToLoad"));
    var fileToLoad = document.getElementById("fileToLoad").files[0];
+   let dfa = {};
 
     var fileReader = new FileReader();
     fileReader.onload = function(fileLoadedEvent) 
@@ -23,10 +23,8 @@ export function openFile() {
         const contentToObj = JSON.parse(textFromFileLoaded);
         console.log(contentToObj.symbols);
         document.getElementById("number_states").value = contentToObj.symbols;
-        return contentToObj;
-     
-        
-        
+        dfa.value = JSON.parse(contentToObj);
     };
     const content = fileReader.readAsText(fileToLoad, "UTF-8");
+    return dfa;
 }

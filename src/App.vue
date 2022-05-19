@@ -91,23 +91,27 @@ function testSymbols(dfa, symbols_input) {
   }
 }
 
-function loadFile()
-{
-  const dfaFromFile = openFile();
-  console.log('dfa from file' + dfaFromFile)
-  //  dfa.value.symbols = dfaFromFile.sym;
-  // dfa.value.finalStates = finalStates.value;
-  // dfa.value.startState = startState.value;
-  // amountOfStates.value.forEach((element) => {
-  //   dfa.value.states[element] = {
-  //     on: {},
-  //   };
-  //   symbols.value.forEach((symbol) => {
-  //     dfa.value.states[element]["on"][symbol] = [];
-  //   });
-  //   dfa.value.states[element]["on"][""] = [];
-  // });
-  // showGenerate.value = true;
+function loadFile() {
+  var fileToLoad = document.getElementById("fileToLoad").files[0];
+
+  var fileReader = new FileReader();
+  fileReader.onload = function (fileLoadedEvent) {
+    var textFromFileLoaded = fileLoadedEvent.target.result;
+    const contentToObj = JSON.parse(textFromFileLoaded);
+    document.getElementById("number_states").value = contentToObj.symbols;
+    showGenerate.value = true;
+    console.log(contentToObj);
+    let dfaFile = JSON.parse(contentToObj);
+    symbols.value = dfaFile.symbols;
+    dfa.value.symbols = dfaFile.symbols;
+    startState.value = dfaFile.startState;
+    dfa.value.startState = dfaFile.startState;
+    finalStates.value = dfaFile.finalStates;
+    dfa.value.finalStates = dfaFile.finalStates;
+    numberStates.value = Object.keys(dfaFile.states).length;
+    dfa.value.states = dfaFile.states;
+  };
+  const content = fileReader.readAsText(fileToLoad, "UTF-8");
 }
 
 function addSymbol() {
@@ -241,13 +245,10 @@ function closeBasic() {
                     >Open Automaton from local machince</label
                   > -->
                   <input class="form-control" type="file" id="fileToLoad" />
-                      
                 </div>
-                 <button class="btn btn-success col-3" @click="loadFile">
+                <button class="btn btn-success col-3" @click="loadFile">
                   Open
                 </button>
-                  
-              
               </div>
             </div>
           </div>
