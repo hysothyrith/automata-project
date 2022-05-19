@@ -10,3 +10,23 @@ export function saveFile(fileName: string, data: any) {
     a.click();
     URL.revokeObjectURL(url);
 }
+
+// load file from local computer as a .json file
+export function openFile() {
+    console.log(document.getElementById("fileToLoad"));
+   var fileToLoad = document.getElementById("fileToLoad").files[0];
+
+    var fileReader = new FileReader();
+    fileReader.onload = function(fileLoadedEvent) 
+    {
+        var textFromFileLoaded = fileLoadedEvent.target.result;
+        const contentToObj = JSON.parse(textFromFileLoaded);
+        console.log(contentToObj.symbols);
+        document.getElementById("number_states").value = contentToObj.symbols;
+        return contentToObj;
+     
+        
+        
+    };
+    const content = fileReader.readAsText(fileToLoad, "UTF-8");
+}

@@ -26,7 +26,7 @@ import Divider from "primevue/divider";
 import FileUpload from "primevue/fileupload";
 import { useToast } from "primevue/usetoast";
 import { dfa2 } from "./lib/example-automata";
-import { saveFile } from "./lib/FileWriter";
+import { saveFile, openFile } from "./lib/FileWriter";
 
 const text = ref("");
 const dfa3 = create(dfa2);
@@ -89,6 +89,25 @@ function testSymbols(dfa, symbols_input) {
     severity.value = "error";
     text.value = "Rejected";
   }
+}
+
+function loadFile()
+{
+  const dfaFromFile = openFile();
+  console.log('dfa from file' + dfaFromFile)
+  //  dfa.value.symbols = dfaFromFile.sym;
+  // dfa.value.finalStates = finalStates.value;
+  // dfa.value.startState = startState.value;
+  // amountOfStates.value.forEach((element) => {
+  //   dfa.value.states[element] = {
+  //     on: {},
+  //   };
+  //   symbols.value.forEach((symbol) => {
+  //     dfa.value.states[element]["on"][symbol] = [];
+  //   });
+  //   dfa.value.states[element]["on"][""] = [];
+  // });
+  // showGenerate.value = true;
 }
 
 function addSymbol() {
@@ -213,6 +232,22 @@ function closeBasic() {
                 >
                   Save
                 </button>
+              </div>
+            </div>
+            <div class="mt-5">
+              <div class="row">
+                <div class="col-9">
+                  <!-- <label for="fileToLoad" class="form-label"
+                    >Open Automaton from local machince</label
+                  > -->
+                  <input class="form-control" type="file" id="fileToLoad" />
+                      
+                </div>
+                 <button class="btn btn-success col-3" @click="loadFile">
+                  Open
+                </button>
+                  
+              
               </div>
             </div>
           </div>
